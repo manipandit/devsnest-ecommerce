@@ -1,113 +1,219 @@
-import Image from "next/image";
+"use client";
+import React, { useEffect, useLayoutEffect, useState } from "react";
+import { faker } from "@faker-js/faker";
+import axios from "axios";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 
-export default function Home() {
+interface Product {
+  name: string;
+  id: string;
+}
+
+export default function page() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+
+  useLayoutEffect(() => {
+    selectedProducts();
+    fetchProducts();
+  }, []);
+
+  // seeding db with data
+  // const addProductsToDb = async () => {
+  //   let categories: Category[] = [];
+
+  //   for (let i = 0; i < 100; i++) {
+  //     const productName = faker.commerce.product();
+  //     categories.push({ name: productName });
+  //   }
+
+  //   try {
+  //     const { data } = await axios.post(`/api/category`, categories, {
+  //       withCredentials: true,
+  //     });
+
+  //     if (!data.success) {
+  //       alert(data.message);
+  //     }
+  //   } catch (error) {
+  //     alert(error);
+  //   }
+  // };
+
+  const selectPageHandler = (selectedPage: number) => {
+    if (selectedPage >= 1 && selectedPage <= totalPages) setPage(selectedPage);
+  };
+
+  const renderPageNums = () => {
+    const maxPages = 7;
+    let startPage = Math.max(1, page - Math.floor(maxPages / 2));
+    let endPage = startPage + maxPages - 1;
+
+    if (endPage > totalPages) {
+      endPage = totalPages;
+      startPage = Math.max(1, endPage - maxPages + 1);
+    }
+
+    return Array.from(
+      { length: endPage - startPage + 1 },
+      (_, i) => startPage + i
+    );
+  };
+
+  // fetch product categories from database
+  const fetchProducts = async () => {
+    try {
+      const { data } = await axios.get(`/api/category`, {
+        withCredentials: true,
+      });
+
+      if (data && data.products) {
+        setProducts(data.products);
+        setTotalPages(Math.ceil(data.products.length / 6));
+      }
+    } catch (error) {
+      alert(error);
+    }
+  };
+
+  // fetch selected categories
+  const selectedProducts = async () => {
+    try {
+      const { data } = await axios.get(`/api/category/select`, {
+        withCredentials: true,
+      });
+
+      const categories = data.selectedCategories;
+
+      const updatedCategories = categories.map(
+        (category: { categoryId: string }) => {
+          return category.categoryId;
+        }
+      );
+      setSelectedCategories(updatedCategories);
+    } catch (error) {
+      alert(error);
+    }
+  };
+
+  const selectCategory = async (categoryId: string) => {
+    try {
+      const newSelectedCategories = selectedCategories.includes(categoryId)
+        ? selectedCategories.filter((id) => id !== categoryId)
+        : [...selectedCategories, categoryId];
+
+      // Update the local state immediately to reflect the change
+      setSelectedCategories(newSelectedCategories);
+
+      const { data } = await axios.post(
+        `/api/category/select/?categoryId=${categoryId}`,
+        {},
+        {
+          withCredentials: true,
+        }
+      );
+      console.log(data);
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  };
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="flex justify-center ">
+      <div className="w-[576px] h-[658px] mt-[78px] mb-6 border border-[#C1C1C1] rounded-[20px]">
+        <div>
+          <div className="font-semibold text-[32px] leading-[38px] pt-10 text-center">
+            Please mark your interests!
+          </div>
+          <div className="text-center pt-5 font-normal text-[16px]">
+            We will keep you notified.
+          </div>
+          <div className="pt-10 pl-10 font-medium text-[20px] leading-[26px]">
+            My saved interests!
+          </div>
+
+          {/* seed data */}
+          {/* <button
+            className="bg-black text-white px-2 py-2"
+            onClick={addProductsToDb}
           >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+            Seed data to db
+          </button> */}
+          <div className="pt-5 pl-10">
+            <div className="flex flex-col gap-x-3">
+              <div className="flex flex-col gap-y-4">
+                {products.slice(page * 6 - 6, page * 6).map((product) => {
+                  return (
+                    <div
+                      key={product.id}
+                      className="flex gap-x-3 items-center mb-3 "
+                    >
+                      <input
+                        type="checkbox"
+                        onChange={() => selectCategory(product.id)}
+                        checked={selectedCategories.includes(product.id)}
+                        className="w-6 h-6 rounded-[4px] text-black bg-[#CCCCCC] border-gray-300 checked:accent-black "
+                      />
+
+                      <li className="list-none text-[16px] font-normal leading-[26px]">
+                        {product.name}
+                      </li>
+                    </div>
+                  );
+                })}
+              </div>
+              {products.length > 0 && (
+                <div className="flex items-center pt-16">
+                  <span
+                    onClick={() => selectPageHandler(page - 2)}
+                    className="py-4 px-0 cursor-pointer"
+                  >
+                    <ChevronsLeft size={25} color="#ACACAC" />
+                  </span>
+                  <span
+                    onClick={() => selectPageHandler(page - 1)}
+                    className="py-4 px-0 cursor-pointer"
+                  >
+                    <ChevronLeft size={20} color="#ACACAC" />
+                  </span>
+                  {renderPageNums().map((pageNumber) => (
+                    <span
+                      onClick={() => selectPageHandler(pageNumber)}
+                      className={`py-4 px-2 cursor-pointer font-medium text-[20px]  ${
+                        page === pageNumber ? "text-black" : "text-[#ACACAC]"
+                      }`}
+                      key={pageNumber}
+                    >
+                      {pageNumber}
+                    </span>
+                  ))}
+                  <span className="text-[#ACACAC]">...</span>
+                  <span
+                    onClick={() => selectPageHandler(page + 1)}
+                    className="py-4 px-2 cursor-pointer"
+                  >
+                    <ChevronRight size={20} color="#ACACAC" />
+                  </span>
+                  <span
+                    onClick={() => selectPageHandler(page + 2)}
+                    className="py-4 px-0 cursor-pointer"
+                  >
+                    <ChevronsRight size={25} color="#ACACAC" />
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-full sm:before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full sm:after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50 text-balance`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+    </div>
   );
 }
