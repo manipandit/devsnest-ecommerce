@@ -5,6 +5,7 @@ import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { Suspense } from "react";
 
 export default function Verify() {
   const [codeValues, setCodeValues] = useState<string[]>(Array(8).fill(""));
@@ -41,34 +42,38 @@ export default function Verify() {
     }
   };
   return (
-    <div>
-      <div className="w-[576px] h-[453px] border border-[#C1C1C1] rounded-[20px] mt-[40px]">
-        <div className="text-[32px] font-semibold flex justify-center pt-6">
-          Verify your email
-        </div>
-        <div className="pt-5 w-full  flex justify-center text-[16px] font-normal">
-          <span className="max-w-[334px] text-center">
-            Enter the 8 digit code you have received on{" "}
-            <span className="font-medium">anu***@gmail.com</span>
-          </span>
-        </div>
-        <div className="pt-11 w-full  flex flex-col gap-y-2 px-16">
-          <div className="flex justify-start text-[16px] font-normal">Code</div>
-          <div className="flex justify-center gap-x-3">
-            {codeValues.map((value, index) => (
-              <Code
-                key={index}
-                value={value}
-                onChange={(newValue) => handleChange(index, newValue)}
-              />
-            ))}
+    <Suspense>
+      <div>
+        <div className="w-[576px] h-[453px] border border-[#C1C1C1] rounded-[20px] mt-[40px]">
+          <div className="text-[32px] font-semibold flex justify-center pt-6">
+            Verify your email
+          </div>
+          <div className="pt-5 w-full  flex justify-center text-[16px] font-normal">
+            <span className="max-w-[334px] text-center">
+              Enter the 8 digit code you have received on{" "}
+              <span className="font-medium">anu***@gmail.com</span>
+            </span>
+          </div>
+          <div className="pt-11 w-full  flex flex-col gap-y-2 px-16">
+            <div className="flex justify-start text-[16px] font-normal">
+              Code
+            </div>
+            <div className="flex justify-center gap-x-3">
+              {codeValues.map((value, index) => (
+                <Code
+                  key={index}
+                  value={value}
+                  onChange={(newValue) => handleChange(index, newValue)}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="pt-20 flex justify-center">
+            <Button label="Verify" onClick={verifyOtp} />
           </div>
         </div>
-
-        <div className="pt-20 flex justify-center">
-          <Button label="Verify" onClick={verifyOtp} />
-        </div>
       </div>
-    </div>
+    </Suspense>
   );
 }
