@@ -60,6 +60,7 @@ export default function Login() {
             label="Email"
             placeholder="Enter email"
             type="email"
+            name="email"
             onChange={(e) => handleChange("email", e.target.value)}
           />
         </div>
@@ -68,6 +69,7 @@ export default function Login() {
             label="Password"
             placeholder="Enter password"
             type="password"
+            name="password"
             onChange={(e) => handleChange("password", e.target.value)}
           />
         </div>

@@ -49,7 +49,6 @@ export default function Signup() {
               placeholder="Enter name"
               type="text"
               name="name"
-              // onChange={(e) => handleChange("name", e.target.value)}
             />
           </div>
           <div className="pt-5 flex justify-center">
@@ -58,7 +57,6 @@ export default function Signup() {
               placeholder="Enter email"
               type="email"
               name="email"
-              // onChange={(e) => handleChange("email", e.target.value)}
             />
           </div>
           <div className="pt-5 flex justify-center">
@@ -67,7 +65,6 @@ export default function Signup() {
               placeholder="Enter password"
               type="password"
               name="password"
-              // onChange={(e) => handleChange("password", e.target.value)}
             />
           </div>
           <SubmitButton />
