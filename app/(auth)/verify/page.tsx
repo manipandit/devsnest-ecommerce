@@ -3,15 +3,16 @@ import Button from "@/components/Button";
 import Code from "@/components/Code";
 import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { Suspense } from "react";
+import { verifyUserAccount } from "@/actions/signup";
 
 export default function Verify() {
   const [codeValues, setCodeValues] = useState<string[]>(Array(8).fill(""));
   const { push } = useRouter();
   const params = useSearchParams();
-  const userId = params.get("id");
+  const email = params.get("email");
 
   const handleChange = (index: number, value: string) => {
     const newCodeValues = [...codeValues];
@@ -19,24 +20,19 @@ export default function Verify() {
     setCodeValues(newCodeValues);
   };
 
-  // checking if otp is right, just hardcoding it to 12345678
   const verifyOtp = async () => {
-    const otp = codeValues.join("");
-    console.log(otp);
-    console.log(typeof otp);
-    if (otp == "12345678") {
-      const { data } = await axios.put(
-        `/api/signup`,
-        { userId },
-        {
-          withCredentials: true,
-        }
-      );
+    const userOtp = codeValues.join("");
+    const otp = localStorage.getItem("otp");
 
-      if (data.success) {
+    if (userOtp === otp) {
+      localStorage.removeItem("otp");
+
+      const data = await verifyUserAccount(email || "");
+
+      if (data?.success) {
         toast.success("Email verified successfully");
         push("/login");
-      } else push("/signup");
+      }
     } else {
       toast.error("Invalid OTP, enter correct otp to verify");
     }
@@ -51,7 +47,9 @@ export default function Verify() {
           <div className="pt-5 w-full  flex justify-center text-[16px] font-normal">
             <span className="max-w-[334px] text-center">
               Enter the 8 digit code you have received on{" "}
-              <span className="font-medium">anu***@gmail.com</span>
+              <span className="font-medium">
+                {email ? email.substring(0, 3) : "anu"}***@gmail.com
+              </span>
             </span>
           </div>
           <div className="pt-11 w-full  flex flex-col gap-y-2 px-16">

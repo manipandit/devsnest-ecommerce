@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect, useLayoutEffect, useState } from "react";
-import { faker } from "@faker-js/faker";
 import axios from "axios";
 import {
   ChevronLeft,
@@ -8,6 +7,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
+import Skeleton from "@/components/Skeleton";
 
 interface Product {
   name: string;
@@ -19,33 +19,13 @@ export default function page() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
+  const [loading, setLoading] = useState(false);
 
   useLayoutEffect(() => {
+    setLoading(true);
     selectedProducts();
     fetchProducts();
   }, []);
-
-  // seeding db with data
-  // const addProductsToDb = async () => {
-  //   let categories: Category[] = [];
-
-  //   for (let i = 0; i < 100; i++) {
-  //     const productName = faker.commerce.product();
-  //     categories.push({ name: productName });
-  //   }
-
-  //   try {
-  //     const { data } = await axios.post(`/api/category`, categories, {
-  //       withCredentials: true,
-  //     });
-
-  //     if (!data.success) {
-  //       alert(data.message);
-  //     }
-  //   } catch (error) {
-  //     alert(error);
-  //   }
-  // };
 
   const selectPageHandler = (selectedPage: number) => {
     if (selectedPage >= 1 && selectedPage <= totalPages) setPage(selectedPage);
@@ -70,6 +50,8 @@ export default function page() {
   // fetch product categories from database
   const fetchProducts = async () => {
     try {
+      setLoading(true);
+
       const { data } = await axios.get(`/api/category`, {
         withCredentials: true,
       });
@@ -80,6 +62,8 @@ export default function page() {
       }
     } catch (error) {
       alert(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -140,78 +124,75 @@ export default function page() {
             My saved interests!
           </div>
 
-          {/* seed data */}
-          {/* <button
-            className="bg-black text-white px-2 py-2"
-            onClick={addProductsToDb}
-          >
-            Seed data to db
-          </button> */}
-          <div className="pt-5 pl-10">
-            <div className="flex flex-col gap-x-3">
-              <div className="flex flex-col gap-y-4">
-                {products.slice(page * 6 - 6, page * 6).map((product) => {
-                  return (
-                    <div
-                      key={product.id}
-                      className="flex gap-x-3 items-center mb-3 "
-                    >
-                      <input
-                        type="checkbox"
-                        onChange={() => selectCategory(product.id)}
-                        checked={selectedCategories.includes(product.id)}
-                        className="w-6 h-6 rounded-[4px] text-black bg-[#CCCCCC] border-gray-300 checked:accent-black "
-                      />
+          {loading ? (
+            <Skeleton />
+          ) : (
+            <div className="pt-5 pl-10">
+              <div className="flex flex-col gap-x-3">
+                <div className="flex flex-col gap-y-4">
+                  {products.slice(page * 6 - 6, page * 6).map((product) => {
+                    return (
+                      <div
+                        key={product.id}
+                        className="flex gap-x-3 items-center mb-3 "
+                      >
+                        <input
+                          type="checkbox"
+                          onChange={() => selectCategory(product.id)}
+                          checked={selectedCategories.includes(product.id)}
+                          className="w-6 h-6 rounded-[4px] text-black bg-[#CCCCCC] border-gray-300 checked:accent-black "
+                        />
 
-                      <li className="list-none text-[16px] font-normal leading-[26px]">
-                        {product.name}
-                      </li>
-                    </div>
-                  );
-                })}
-              </div>
-              {products.length > 0 && (
-                <div className="flex items-center pt-16">
-                  <span
-                    onClick={() => selectPageHandler(page - 2)}
-                    className="py-4 px-0 cursor-pointer"
-                  >
-                    <ChevronsLeft size={25} color="#ACACAC" />
-                  </span>
-                  <span
-                    onClick={() => selectPageHandler(page - 1)}
-                    className="py-4 px-0 cursor-pointer"
-                  >
-                    <ChevronLeft size={20} color="#ACACAC" />
-                  </span>
-                  {renderPageNums().map((pageNumber) => (
-                    <span
-                      onClick={() => selectPageHandler(pageNumber)}
-                      className={`py-4 px-2 cursor-pointer font-medium text-[20px]  ${
-                        page === pageNumber ? "text-black" : "text-[#ACACAC]"
-                      }`}
-                      key={pageNumber}
-                    >
-                      {pageNumber}
-                    </span>
-                  ))}
-                  <span className="text-[#ACACAC]">...</span>
-                  <span
-                    onClick={() => selectPageHandler(page + 1)}
-                    className="py-4 px-2 cursor-pointer"
-                  >
-                    <ChevronRight size={20} color="#ACACAC" />
-                  </span>
-                  <span
-                    onClick={() => selectPageHandler(page + 2)}
-                    className="py-4 px-0 cursor-pointer"
-                  >
-                    <ChevronsRight size={25} color="#ACACAC" />
-                  </span>
+                        <li className="list-none text-[16px] font-normal leading-[26px]">
+                          {product.name}
+                        </li>
+                      </div>
+                    );
+                  })}
                 </div>
-              )}
+                {products.length > 0 && (
+                  <div className="flex items-center pt-16">
+                    <span
+                      onClick={() => selectPageHandler(page - 2)}
+                      className="py-4 px-0 cursor-pointer"
+                    >
+                      <ChevronsLeft size={25} color="#ACACAC" />
+                    </span>
+                    <span
+                      onClick={() => selectPageHandler(page - 1)}
+                      className="py-4 px-0 cursor-pointer"
+                    >
+                      <ChevronLeft size={20} color="#ACACAC" />
+                    </span>
+                    {renderPageNums().map((pageNumber) => (
+                      <span
+                        onClick={() => selectPageHandler(pageNumber)}
+                        className={`py-4 px-2 cursor-pointer font-medium text-[20px]  ${
+                          page === pageNumber ? "text-black" : "text-[#ACACAC]"
+                        }`}
+                        key={pageNumber}
+                      >
+                        {pageNumber}
+                      </span>
+                    ))}
+                    <span className="text-[#ACACAC]">...</span>
+                    <span
+                      onClick={() => selectPageHandler(page + 1)}
+                      className="py-4 px-2 cursor-pointer"
+                    >
+                      <ChevronRight size={20} color="#ACACAC" />
+                    </span>
+                    <span
+                      onClick={() => selectPageHandler(page + 2)}
+                      className="py-4 px-0 cursor-pointer"
+                    >
+                      <ChevronsRight size={25} color="#ACACAC" />
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

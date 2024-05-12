@@ -1,46 +1,40 @@
 "use client";
+import { signupAction } from "@/actions/signup";
 import Button from "@/components/Button";
 import Input from "@/components/Input";
-import axios, { AxiosError } from "axios";
 import Link from "next/link";
+import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import { useFormState, useFormStatus } from "react-dom";
+import { generateOTP } from "@/utils/otp";
+import axios from "axios";
 
-interface SignUp {
-  name: string;
-  email: string;
-  password: string;
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  // console.log("isPending: ", pending);
+
+  return (
+    <div className="pt-10 flex justify-center">
+      <Button label="Create Account" pending={pending} />
+    </div>
+  );
 }
 export default function Signup() {
   const { push } = useRouter();
-  const [signup, setSignup] = useState<SignUp>({
-    name: "",
-    email: "",
-    password: "",
-  });
-  const handleChange = (field: string, value: string) => {
-    setSignup((prevState) => ({
-      ...prevState,
-      [field]: value,
-    }));
-  };
+  const [state, formAction] = useFormState(signupAction, null);
 
-  const signupHandler = async () => {
-    try {
-      const { data } = await axios.post(`/api/signup`, signup, {
-        withCredentials: true,
+  useEffect(() => {
+    if (state?.success) {
+      const email = state.email;
+
+      const otp = generateOTP();
+      localStorage.setItem("otp", otp);
+
+      axios.post(`/api/send`, { email, otp }).then(() => {
+        push(`/verify?email=${email}`);
       });
-
-      if (!data.success) {
-        alert(data.message);
-        return;
-      }
-
-      if (data.success) push(`/verify/?id=${data.id}`);
-    } catch (error) {
-      alert(error);
     }
-  };
+  }, [state?.success]); // Run only when state.success changes
 
   return (
     <div>
@@ -48,33 +42,36 @@ export default function Signup() {
         <div className="text-[32px] font-semibold flex justify-center pt-6">
           Create your account
         </div>
-        <div className="pt-5 flex justify-center">
-          <Input
-            label="Name"
-            placeholder="Enter name"
-            type="text"
-            onChange={(e) => handleChange("name", e.target.value)}
-          />
-        </div>
-        <div className="pt-5 flex justify-center">
-          <Input
-            label="Email"
-            placeholder="Enter email"
-            type="email"
-            onChange={(e) => handleChange("email", e.target.value)}
-          />
-        </div>
-        <div className="pt-5 flex justify-center">
-          <Input
-            label="Password"
-            placeholder="Enter password"
-            type="password"
-            onChange={(e) => handleChange("password", e.target.value)}
-          />
-        </div>
-        <div className="pt-10 flex justify-center">
-          <Button label="Create Account" onClick={signupHandler} />
-        </div>
+        <form action={formAction}>
+          <div className="pt-5 flex justify-center">
+            <Input
+              label="Name"
+              placeholder="Enter name"
+              type="text"
+              name="name"
+              // onChange={(e) => handleChange("name", e.target.value)}
+            />
+          </div>
+          <div className="pt-5 flex justify-center">
+            <Input
+              label="Email"
+              placeholder="Enter email"
+              type="email"
+              name="email"
+              // onChange={(e) => handleChange("email", e.target.value)}
+            />
+          </div>
+          <div className="pt-5 flex justify-center">
+            <Input
+              label="Password"
+              placeholder="Enter password"
+              type="password"
+              name="password"
+              // onChange={(e) => handleChange("password", e.target.value)}
+            />
+          </div>
+          <SubmitButton />
+        </form>
         <div className="pt-10 text-[#333333] flex justify-center">
           Have an Account?
           <Link

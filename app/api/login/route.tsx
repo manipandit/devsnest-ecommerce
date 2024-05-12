@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         message: "Email is not verified",
         success: false,
-        redirect: `/verify/?id=${existingUser.id}`,
+        redirect: `/verify`,
       });
     }
 
